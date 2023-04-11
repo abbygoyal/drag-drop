@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Reorder List w/ Drag & Drop</title>
+        <style>
+            ul {
+                list-style: none;
+                padding: 0;
+            }
+            li {
+                border: 1px solid black;
+                padding: 10px;
+                margin-bottom: 5px;
+                cursor: ns-resize;
+            }
+            li:hover {
+                background-color: lightgray;
+            }
+            li.dragging {
+                opacity: 1;
+            }
+            .floater {
+                background-color: rgb(255, 255, 216);
+                border-color: yellow;
+            }
+            .droppable {
+                background-color: yellow;
+            }
+        </style>
+    </head>
+    <body>
+        <ul id="list">
+            <li id="drag_1" draggable="true">Item 1</li>
+            <li id="drag_2" draggable="true">Item 2</li>
+            <li id="drag_3" draggable="true">Item 3</li>
+            <li id="drag_4" draggable="true">Item 4</li>
+            <li id="drag_5" draggable="true">Item 5</li>
+        </ul>
+        <script>
+            const list = document.querySelector("ul#list");
+            const draggables = document.querySelectorAll("ul#list > li[draggable='true']");
+            const dragtarget = document.querySelector(".floater");
+
+            const floater = document.createElement("li");
+            floater.classList.add("floater");
+            floater.innerHTML = "&nbsp;";
+
+            draggables.forEach((draggable) => {
+                draggable.addEventListener("dragstart", (e) => {
+                    const id = e.target.id;
+                    e.dataTransfer.setData("id", id);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.target.classList.add("dragging");
+                });
+
+                draggable.addEventListener("dragend", (e) => {
+                    e.target.classList.remove("dragging");
+                    floater.remove();
+                });
+
+                draggable.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+
+                    const elHeight = e.target.clientHeight;
+                    const yPos = e.offsetY;
+                    const inTopHalf = yPos < elHeight / 2;
+                    const elAbove = e.target.previousElementSibling;
+                    const elBelow = e.target.nextElementSibling;
+
+                    if (inTopHalf && elAbove !== floater) list.insertBefore(floater, draggable);
+                    if (!inTopHalf && elBelow !== floater) draggable.after(floater);
+                });
+            });
+
+            floater.addEventListener("dragenter", (e) => {
+                e.target.classList.add("droppable");
+            });
+
+            floater.addEventListener("dragleave", (e) => {
+                e.target.classList.remove("droppable");
+            });
+
+            floater.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+            });
+
+            floater.addEventListener("drop", (e) => {
+                e.preventDefault();
+                const id = e.dataTransfer.getData("id");
+                e.target.after(document.getElementById(id));
+            });
+        </script>
+    </body>
+</html>
